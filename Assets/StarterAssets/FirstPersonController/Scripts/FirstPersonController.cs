@@ -22,6 +22,12 @@ namespace StarterAssets
 		public float SpeedChangeRate = 10.0f;
 
 		[Space(10)]
+		[Tooltip("The speed of the player's slide")]
+		public float slideSpeed = 10.0f;
+		[Tooltip("The length of the player's slide")]
+		public float slideLength = 20.0f;
+
+		[Space(10)]
 		[Tooltip("The height the player can jump")]
 		public float JumpHeight = 1.2f;
 		[Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
@@ -36,6 +42,8 @@ namespace StarterAssets
 		[Header("Player Grounded")]
 		[Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
 		public bool Grounded = true;
+		[Tooltip("Determines whether the player is able to double jump")]
+		public bool DoubleJumpReady = false;
 		[Tooltip("Useful for rough ground")]
 		public float GroundedOffset = -0.14f;
 		[Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
@@ -63,6 +71,9 @@ namespace StarterAssets
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
+
+		//delay before a double jump
+		private float _jumpDelay;
 
 	
 #if ENABLE_INPUT_SYSTEM
@@ -197,11 +208,20 @@ namespace StarterAssets
 			// move the player
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
+		/*
+		private void Slide(){
+			if(Grounded){
 
+			}
+		}
+		*/
 		private void JumpAndGravity()
 		{
 			if (Grounded)
 			{
+				// reset double jump count
+				DoubleJumpReady = true;
+
 				// reset the fall timeout timer
 				_fallTimeoutDelta = FallTimeout;
 
@@ -216,6 +236,7 @@ namespace StarterAssets
 				{
 					// the square root of H * -2 * G = how much velocity needed to reach desired height
 					_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+					_jumpDelay = Time.time + 0.1f;
 				}
 
 				// jump timeout
@@ -226,6 +247,13 @@ namespace StarterAssets
 			}
 			else
 			{
+				// allow for a double jump
+				if(_input.jump && DoubleJumpReady && Time.time > _jumpDelay)
+				{
+					DoubleJumpReady = false;
+					_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+				}
+
 				// reset the jump timeout timer
 				_jumpTimeoutDelta = JumpTimeout;
 
