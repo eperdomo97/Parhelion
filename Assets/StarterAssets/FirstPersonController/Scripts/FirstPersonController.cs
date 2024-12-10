@@ -23,9 +23,7 @@ namespace StarterAssets
 
 		[Space(10)]
 		[Tooltip("The speed of the player's slide")]
-		public float slideSpeed = 10.0f;
-		[Tooltip("The length of the player's slide")]
-		public float slideLength = 20.0f;
+		public float SlideSpeed = 10.0f;
 
 		[Space(10)]
 		[Tooltip("The height the player can jump")]
@@ -74,6 +72,7 @@ namespace StarterAssets
 
 		//delay before a double jump
 		private float _jumpDelay;
+		//delay before performing another slide
 
 	
 #if ENABLE_INPUT_SYSTEM
@@ -126,6 +125,7 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			Slide();
 		}
 
 		private void LateUpdate()
@@ -208,13 +208,19 @@ namespace StarterAssets
 			// move the player
 			_controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 		}
-		/*
-		private void Slide(){
-			if(Grounded){
-
+		
+		private void Slide()
+		{
+			Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
+			if(Grounded)
+			{
+				if(_input.crouch)
+				{
+					_controller.Move(inputDirection.normalized * (SlideSpeed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+				}
 			}
 		}
-		*/
+		
 		private void JumpAndGravity()
 		{
 			if (Grounded)
